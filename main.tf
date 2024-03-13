@@ -124,3 +124,20 @@ resource "aws_cloudfront_origin_access_control" "Site_Access" {
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
 }
+
+#Create a route53 hosted zone
+resource "aws_route53_zone" "example" {
+  name = var.domain_name
+}
+
+#Create A record for S3 static website
+resource "aws_route53_record" "example_domain-a" {
+  zone_id = aws_route53_zone.example.zone_id
+  type    = "A"
+  name    = var.domain_name
+  alias {
+    name                   = aws_cloudfront_distribution.Site_Access.domain_name
+    zone_id                = aws_cloudfront_distribution.Site_Access.hosted_zone_id
+    evaluate_target_health = true
+  }
+}
