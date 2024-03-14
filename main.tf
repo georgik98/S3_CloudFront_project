@@ -86,14 +86,6 @@ resource "aws_cloudfront_distribution" "Site_Access" {
 
   enabled             = true
   default_root_object = "index.html"
-  aliases             = [var.domain_name]
-
-  custom_error_response {
-    error_caching_min_ttl = 3000
-    error_code            = 404
-    response_code         = 200
-    response_page_path    = "./index.html"
-  }
 
   restrictions {
     geo_restriction {
@@ -119,9 +111,7 @@ resource "aws_cloudfront_distribution" "Site_Access" {
   }
 
   viewer_certificate {
-    # cloudfront_default_certificate = true
-    acm_certificate_arn = aws_acm_certificate.cert.arn
-    ssl_support_method  = "sni-only"
+    cloudfront_default_certificate = true
   }
 }
 
@@ -150,13 +140,4 @@ resource "aws_route53_record" "example_domain-a" {
     zone_id                = aws_cloudfront_distribution.Site_Access.hosted_zone_id
     evaluate_target_health = true
   }
-}
-
-resource "aws_route53_record" "cert_validation" {
-  count   = length(aws_acm_certificate.cert.domain_validation_options)
-  name    = element(aws_acm_certificate.cert.domain_validation_options.*.resource_record_name, count.index)
-  type    = element(aws_acm_certificate.cert.domain_validation_options.*.resource_record_type, count.index)
-  zone_id = aws_route53_zone.example.zone_id
-  records = [element(aws_acm_certificate.cert.domain_validation_options.*.resource_record_value, count.index)]
-  ttl     = 60
 }
